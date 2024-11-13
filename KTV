@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KTV 歌曲點播</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <h1>歡迎來到 KTV 點歌系統</h1>
+  </header>
+
+  <div id="song-search">
+    <input type="text" id="song-input" placeholder="輸入歌曲名稱">
+    <button id="search-btn">搜尋</button>
+  </div>
+
+  <div id="song-list">
+    <!-- 歌曲列表將在這裡顯示 -->
+  </div>
+
+  <div id="song-queue">
+    <h3>歌曲排隊</h3>
+    <ul id="queue-list">
+      <!-- 當前排隊的歌曲 -->
+    </ul>
+  </div>
+
+  <div id="player">
+    <h3>正在播放的歌曲：</h3>
+    <div id="current-song">
+      <p>請選擇歌曲開始播放。</p>
+    </div>
+    <div id="youtube-player"></div>
+  </div>
+
+  <footer>
+    <p>Powered by KTV 系統</p>
+  </footer>
+
+  <script src="https://www.youtube.com/iframe_api"></script>
+  <script src="app.js"></script>
+</body>
+</html>
+
+body {
+  font-family: Arial, sans-serif;
+  background-color: #f5f5f5;
+  margin: 0;
+  padding: 0;
+}
+
+header {
+  text-align: center;
+  padding: 20px;
+  background-color: #222;
+  color: #fff;
+}
+
+#song-search {
+  display: flex;
+  justify-content: center;
+  margin: 20px 0;
+}
+
+#song-search input {
+  padding: 10px;
+  width: 70%;
+  font-size: 16px;
+}
+
+#song-search button {
+  padding: 10px;
+  background-color: #008CBA;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+#song-list {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin: 20px;
+}
+
+.song-item {
+  margin: 10px;
+  background-color: #fff;
+  padding: 15px;
+  border-radius: 10px;
+  width: 200px;
+  text-align: center;
+}
+
+#song-queue {
+  margin: 30px;
+}
+
+#queue-list {
+  list-style-type: none;
+  padding: 0;
+}
+
+#player {
+  text-align: center;
+}
+
+footer {
+  text-align: center;
+  padding: 10px;
+  background-color: #222;
+  color: white;
+}
+
+let youtubePlayer;
+let songQueue = [];  // 用來儲存當前排隊的歌曲
+
+// YouTube 播放器初始化
+function onYouTubeIframeAPIReady() {
+  youtubePlayer = new YT.Player('youtube-player', {
+    height: '360',
+    width: '640',
+    videoId: '',  // 初始為空，稍後根據點歌來設置
+  });
+}
+
+// 搜尋歌曲功能
+document.getElementById('search-btn').addEventListener('click', function() {
+  let query = document.getElementById('song-input').value;
+  if (query) {
+    searchSong(query);
+  }
+});
+
+// 搜尋歌曲的 API 呼叫 (假設有一個後端服務提供歌曲搜索)
+function searchSong(query) {
+  // 假設我們有一個 API 返回匹配的歌曲（可以集成 YouTube API 來實現這個功能）
+  let songList = [
+    { title: 'Shape of You', videoId: 'JGwWNGJdvx8' },
+    { title: 'Blinding Lights', videoId: 'fHI8X4OXluQ' },
+    // ... 更多歌曲
+  ];
+
+  displaySongList(songList);
+}
+
+// 顯示歌曲列表
+function displaySongList(songs) {
+  const songListElement = document.getElementById('song-list');
+  songListElement.innerHTML = '';  // 清空現有列表
+
+  songs.forEach(song => {
+    let songElement = document.createElement('div');
+    songElement.className = 'song-item';
+    songElement.innerHTML = `
+      <h4>${song.title}</h4>
+      <button onclick="addToQueue('${song.videoId}', '${song.title}')">點歌</button>
+    `;
+    songListElement.appendChild(songElement);
+  });
+}
+
+// 加入點歌隊列
+function addToQueue(videoId, title) {
+  songQueue.push({ videoId, title });
+  updateQueueDisplay();
+  playNextSong();
+}
+
+// 更新排隊顯示
+function updateQueueDisplay() {
+  const queueListElement = document.getElementById('queue-list');
+  queueListElement.innerHTML = '';  // 清空隊列顯示
+
+  songQueue.forEach(song => {
+    let queueItem = document.createElement('li');
+    queueItem.textContent = song.title;
+    queueListElement.appendChild(queueItem);
+  });
+}
+
+// 播放下一首歌
+function playNextSong() {
+  if (songQueue.length > 0) {
+    const nextSong = songQueue.shift();  // 取出第一首
+    document.getElementById('current-song').innerHTML = `<p>正在播放：${nextSong.title}</p>`;
+    youtubePlayer.loadVideoById(nextSong.videoId);  // 用 YouTube API 播放
+    updateQueueDisplay();  // 更新排隊
+  }
+}
